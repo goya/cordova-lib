@@ -28,7 +28,7 @@ exports.clone = clone;
 
 //  clone_dir, if provided is the directory that git will clone into.
 //  if no clone_dir is supplied, a temp directory will be created and used by git.
-function clone (git_url, git_ref, clone_dir) {
+function clone(git_url, git_ref, clone_dir) {
 
     var needsGitCheckout = !!git_ref;
     if (!shell.which('git')) {
@@ -58,7 +58,12 @@ function clone (git_url, git_ref, clone_dir) {
             }
         })
         .then(function () {
-            events.emit('log', 'Repository "' + git_url + '" checked out to git ref "' + (git_ref || 'master') + '".');
+            return superspawn.spawn('git', ['rev-parse', '--short', 'HEAD'], {
+                cwd: tmp_dir
+            });
+        })
+        .then(function (sha) {
+            events.emit('log', 'Repository "' + git_url + '" checked out to git ref "' + (git_ref || 'master') + '" at "' + sha + '".');
             return tmp_dir;
         })
         .fail(function (err) {
